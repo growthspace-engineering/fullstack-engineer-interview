@@ -11,16 +11,6 @@ export async function getAllUserData(userIds: number[]) {
   return results;
 }
 
-export function sum(a, b) {
-  return a + b;
-}
-
-export function delay(ms: number) {
-  setTimeout(() => {
-    console.log('done');
-  }, ms);
-}
-
 export async function getUserById(userId: number) {
   return db('users')
     .where('id', userId)
