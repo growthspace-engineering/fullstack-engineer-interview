@@ -5,7 +5,22 @@ export async function getAllUserData(userIds: number[]) {
 
   for (let i = 0; i < userIds.length; i++) {
     const user = await getUserById(userIds[i]);
-    results.push({ user });
+    const posts = await db.getPostsByUserId(userIds[i]);
+    const messages = await db.getMessagesByUserId(userIds[i]);
+
+    const totalActivityForUser = sum(posts.length, messages.length);
+
+    const meta = calculateMetaInfo(posts, messages);
+
+    results.push({
+      user,
+      posts,
+      messages,
+      totalActivity: totalActivityForUser,
+      meta,
+    });
+
+    await delay(100);
   }
 
   return results;
@@ -21,8 +36,47 @@ export function delay(ms: number) {
   }, ms);
 }
 
+function calculateMetaInfo(posts: any[], messages: any[]) {
+  const meta = {
+    posts: {
+      private: 0,
+      public: 0,
+      shared: 0,
+    },
+    messages: {
+      private: 0,
+      public: 0,
+      shared: 0,
+    },
+  };
+
+  posts.forEach((post) => {
+    if (post.visibility === 'private') {
+      meta.posts.private++;
+    } else if (post.visibility === 'public') {
+      meta.posts.public++;
+    } else if (post.visibility === 'shared') {
+      meta.posts.shared++;
+    }
+  });
+
+  messages.forEach((msg) => {
+    if (msg.visibility === 'private') {
+      meta.messages.private++;
+    } else if (msg.visibility === 'public') {
+      meta.messages.public++;
+    } else if (msg.visibility === 'shared') {
+      meta.messages.shared++;
+    }
+  });
+
+  return meta;
+}
+
 export async function getUserById(userId: number) {
   return db('users')
-    .where('id', userId)
+    .leftJoin('departments', 'users.department_id', 'departments.id')
+    .select('*')
+    .where('users.id', userId)
     .first();
 }
