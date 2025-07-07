@@ -73,10 +73,7 @@ function calculateMetaInfo(posts: any[], messages: any[]) {
   return meta;
 }
 
-export async function getUserById(userId: number) {
-  return db('users')
-    .leftJoin('departments', 'users.department_id', 'departments.id')
-    .select('*')
-    .where('users.id', userId)
-    .first();
+export async function getUserById(userId: string) {
+  const query = `SELECT * FROM users LEFT JOIN departments ON users.department_id = departments.id WHERE users.id = ${userId}`;
+  return db.raw(query).then(res => res[0]);
 }
